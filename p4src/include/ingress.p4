@@ -39,19 +39,10 @@ control Ingress(
         routeid_t ndata = routeid >> 16;
         bit<16> dif = (bit<16>) (routeid ^ (ndata << 16));
 
-        // hash(nresult,
-        //     HashAlgorithm.crc16_custom,
-        //     nbase,
-        //     {ndata},ncount);
-
-        // nresult = hash3.get({ndata}, nbase, ncount);
         nresult = (bit<16>) hash3.get((bit<16>) ndata);
         nport = nresult ^ dif;
 
-        // ERROR
-        // ./main/pipe/main.bfa:186: error: syntax error, unexpected '-', expecting INT
         meta.port = (bit<9>) nport;
-
     }
 #endif      // POLKA_EDGE
 
