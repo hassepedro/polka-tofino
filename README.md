@@ -28,7 +28,7 @@ To run the PolKa code you need to follow the next steps:
 Sender
 
 ```sh
-$ ./pkt/sender.py 10.1.1.1
+$ ./pkt/sender.py <interface> 10.1.1.1
 ```
 
 Receiver
