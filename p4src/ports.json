@@ -1,0 +1,8 @@
+{
+    "PortToIf" : [
+        { "device_port" :  1, "if" : "eth1" },
+        { "device_port" :  2, "if" : "eth2" },
+        { "device_port" :  3, "if" : "eth3" },
+        { "device_port" : 64, "if" : "veth250" }
+    ]
+}
