@@ -1,0 +1,112 @@
+require 'getoptlong'
+# Do all VM creation in series.
+# Parallel actions seem to break things.
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+# Number of VMs to provision
+# If N > 245, the script mus be modified
+# See IP and MAC values configured below
+
+# To pass custom arguments to vagrant up 
+# vagrant --number-vms=<number> up
+# vagrant --number-vms=<number> provision
+opts = GetoptLong.new(
+  [ '--number-vms', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+
+N=1
+NET_ID = 0
+
+opts.each do |opt, arg|
+  case opt
+    when '--number-vms'
+      N=arg.to_i
+  end
+end
+
+
+Vagrant.configure("2") do |config|
+  (1..N).each do |switch_id|
+    hostname = "p4-bf-#{switch_id}"
+    config.vm.define hostname do |machine|
+      config.vm.box = "rafaelsilvag/p4studio"
+      config.vm.box_version = "1.2.0"   
+      machine.vm.hostname = hostname
+
+      # Machine specs
+      machine.vm.provider "libvirt" do |lv|
+        lv.default_prefix = ""
+        lv.memory = "8192"
+        lv.cpus = "2"
+        lv.graphics_type = "vnc"
+        lv.graphics_ip = "0.0.0.0"
+      end
+
+      # Private network for inter-vm communication
+      # Port 1 (host)
+      machine.vm.network "private_network",
+          ip: "10.10.#{switch_id}1.10",
+          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (1)}", # Must be lowercase
+          nic_type: "virtio",
+          libvirt__network_name: "s#{switch_id}-p1",
+          libvirt__driver_name: "vhost",
+          libvirt__driver_queues: "8"
+
+      # Port 2 (left switch-to-switch)
+      machine.vm.network "private_network",
+          ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
+          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (2)}", # Must be lowercase
+          nic_type: "virtio",
+          libvirt__network_name: "net#{NET_ID}",
+          libvirt__driver_name: "vhost",
+          libvirt__driver_queues: "8"
+
+      NET_ID = NET_ID + 1
+      # Port 3 (right switch-to-switch)
+      machine.vm.network "private_network",
+          ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
+          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (3)}", # Must be lowercase
+          nic_type: "virtio",
+          libvirt__network_name: "net#{NET_ID}",
+          libvirt__driver_name: "vhost",
+          libvirt__driver_queues: "8"
+      
+      # Port 0 (mgmt) 
+      machine.vm.network "forwarded_port",
+          guest: 22,
+          host: "#{2000+switch_id}"
+
+      machine.ssh.insert_key = false
+      machine.ssh.forward_x11 = true
+
+      # Configure synced folders
+      # machine.vm.synced_folder "../../src/", "/home/vagrant/chaining-box/src", type: "rsync", rsync__chown: true
+      machine.vm.synced_folder "../build/", "/root/p4studio", type: "rsync", rsync__chown: true
+      machine.vm.synced_folder ".", "/vagrant", disabled: true
+
+      # Fix to bug where machines are getting the same IP address.
+      # Re-create machine-id file to allow correct DHCP leasing by dnsmasq
+      # A `vagrant reload` is needed after this
+
+      # machine.vm.provision "bootstrap", type: "shell",
+      #   inline: "sudo tar xvf ~/p4studio/bf-sde-9.2.0.tar -C /extra/; sudo tar xvf ~/p4studio/ba-tools.tar -C /extra/"
+
+      # machine.vm.provision "sde", type: "shell",
+      #   inline: "cd /extra/bf-sde-9.2.0/p4studio_build; sudo -E ./p4studio_build.py --use-profile all_profile"
+
+      # machine.vm.provision "veth", type: "shell",
+      #   inline: "sudo -E /extra/tools/veth_setup.sh"
+      
+      machine.vm.provision "shell",
+        inline: "sudo ifconfig eth1 up; sudo ifconfig eth2 up; sudo ifconfig eth3 up"
+      
+      # Install P4 Studio
+      machine.vm.provision "deps", type: "shell", path: "install-deps.sh"
+
+      # Install PolKA and configure the switch_id 
+      machine.vm.provision "polka", type: "shell", path: "run-polka.sh", args: "#{switch_id}"
+    end
+  end
+end
+
+# Hack to force
+#system("vagrant reload")
