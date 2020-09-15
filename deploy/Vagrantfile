@@ -15,6 +15,10 @@ opts = GetoptLong.new(
 
 N=1
 NET_ID = 0
+# Paris -> frankfurt -> budapest -> poznan -> amsterdam -> slough
+LOCATION_SWITCHES = ["amsterdam", "poznan", "budapest", "frankfurt"]
+# -----------------  src  --- dst -- 
+LOCATION_HOSTS = ["slough", "paris"]
 
 opts.each do |opt, arg|
   case opt
@@ -25,11 +29,12 @@ end
 
 
 Vagrant.configure("2") do |config|
+  # adding switches
   (1..N).each do |switch_id|
-    hostname = "p4-bf-#{switch_id}"
+    hostname = "#{LOCATION_SWITCHES.pop}"
     config.vm.define hostname do |machine|
       config.vm.box = "rafaelsilvag/p4studio"
-      config.vm.box_version = "1.2.0"   
+      config.vm.box_version = "1.2.1"   
       machine.vm.hostname = hostname
 
       # Machine specs
@@ -39,6 +44,9 @@ Vagrant.configure("2") do |config|
         lv.cpus = "2"
         lv.graphics_type = "vnc"
         lv.graphics_ip = "0.0.0.0"
+        lv.graphics_port = (5900 + switch_id)
+        lv.management_network_name = 'mgmt'
+        lv.management_network_address = '192.168.77.0/24'
       end
 
       # Private network for inter-vm communication
@@ -97,7 +105,7 @@ Vagrant.configure("2") do |config|
       #   inline: "sudo -E /extra/tools/veth_setup.sh"
       
       machine.vm.provision "shell",
-        inline: "sudo ifconfig eth1 up; sudo ifconfig eth2 up; sudo ifconfig eth3 up"
+        inline: "sudo rm /etc/machine-id; sudo systemd-machine-id-setup; sudo ifconfig eth1 up; sudo ifconfig eth2 up; sudo ifconfig eth3 up"
       
       # Install P4 Studio
       machine.vm.provision "deps", type: "shell", path: "install-deps.sh"
