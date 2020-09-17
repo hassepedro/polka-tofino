@@ -1,4 +1,4 @@
-# How to deploy a linear topology PolKA for Tofino using P4 Studio environment
+# How to deploy PolKA for Tofino in a emulated evironment using P4 Studio environment
 
 This deployment option is intended mainly for testing and development. To start the environment you have to simply run:
 
