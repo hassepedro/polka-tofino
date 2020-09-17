@@ -12,8 +12,9 @@ fi
 L_IRPOLY=("0x002d" "0x002d" "0x002b" "0x0039" "0x003f")
 
 # Configuring PolKA
+cd $POLKA_PATH && git pull
 sed -i "s/${L_IRPOLY[0]}/${L_IRPOLY[$1]}/g" $POLKA_PATH/include/ingress.p4
 # Compiling PolKA solution
-cd $POLKA_PATH && git pull && ./build.sh && ./p4_build.sh polka.p4
+cd $POLKA_PATH && ./build.sh && ./p4_build.sh polka.p4
 sleep 2
 ./run_terminals.sh &
