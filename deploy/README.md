@@ -1,4 +1,4 @@
-# How to deploy PolKA for Tofino in a emulated evironment using P4 Studio environment
+# How to deploy PolKA for Tofino in a emulated evironment using Barefoot P4 Studio.
 
 This deployment option is intended mainly for testing and development. To start the environment you have to simply run:
 
