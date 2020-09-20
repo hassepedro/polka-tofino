@@ -9,23 +9,24 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 # To pass custom arguments to vagrant up 
 # vagrant --number-vms=<number> up
 # vagrant --number-vms=<number> provision
-opts = GetoptLong.new(
-  [ '--number-vms', GetoptLong::OPTIONAL_ARGUMENT ]
-)
+# opts = GetoptLong.new(
+#   [ '--number-vms', GetoptLong::OPTIONAL_ARGUMENT ]
+# )
 
-N=1
+N=6
+INIT_NET_ID=0
 NET_ID = 0
 # Paris -> frankfurt -> budapest -> poznan -> amsterdam -> slough
-LOCATION_SWITCHES = ["amsterdam", "poznan", "budapest", "frankfurt"]
+LOCATION_SWITCHES = ["slough", "paris", "amsterdam", "poznan", "budapest", "frankfurt"]
 # -----------------  src  --- dst -- 
 LOCATION_HOSTS = ["slough", "paris"]
 
-opts.each do |opt, arg|
-  case opt
-    when '--number-vms'
-      N=arg.to_i
-  end
-end
+# opts.each do |opt, arg|
+#   case opt
+#     when '--number-vms'
+#       N=arg.to_i
+#   end
+# end
 
 
 Vagrant.configure("2") do |config|
@@ -50,64 +51,82 @@ Vagrant.configure("2") do |config|
         lv.management_network_address = '192.168.77.0/24'
       end
 
-      # Private network for inter-vm communication
-      # Port 1 (host)
-      machine.vm.network "private_network",
-          ip: "10.10.#{switch_id}1.10",
-          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (1)}", # Must be lowercase
-          nic_type: "virtio",
-          libvirt__network_name: "s#{switch_id}-p1",
-          libvirt__driver_name: "vhost",
-          libvirt__driver_queues: "8"
-
-      # Port 2 (left switch-to-switch)
-      machine.vm.network "private_network",
-          ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
-          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (2)}", # Must be lowercase
-          nic_type: "virtio",
-          libvirt__network_name: "net#{NET_ID}",
-          libvirt__driver_name: "vhost",
-          libvirt__driver_queues: "8"
-
-      NET_ID = NET_ID + 1
-      # Port 3 (right switch-to-switch)
-      machine.vm.network "private_network",
-          ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
-          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (3)}", # Must be lowercase
-          nic_type: "virtio",
-          libvirt__network_name: "net#{NET_ID}",
-          libvirt__driver_name: "vhost",
-          libvirt__driver_queues: "8"
-
-      if hostname == "frankfurt" || hostname == "amsterdam"
+      if hostname == "paris"
         machine.vm.network "private_network",
-          ip: "10.11.40.#{switch_id + 10}",
-          mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (4)}", # Must be lowercase
-          nic_type: "virtio",
-          libvirt__network_name: "netFA",
-          libvirt__driver_name: "vhost",
-          libvirt__driver_queues: "8"
+            ip: "10.11.1#{INIT_NET_ID}.#{switch_id + 10}",
+            mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (3)}", # Must be lowercase
+            nic_type: "virtio",
+            libvirt__network_name: "net#{INIT_NET_ID}",
+            libvirt__driver_name: "vhost",
+            libvirt__driver_queues: "8"
+      elsif hostname == "slough"
+        machine.vm.network "private_network",
+            ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
+            mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (3)}", # Must be lowercase
+            nic_type: "virtio",
+            libvirt__network_name: "net#{NET_ID}",
+            libvirt__driver_name: "vhost",
+            libvirt__driver_queues: "8"
+      else
+        # Private network for inter-vm communication
+        # Port 1 (host)
+        machine.vm.network "private_network",
+            ip: "10.10.#{switch_id}1.10",
+            mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (1)}", # Must be lowercase
+            nic_type: "virtio",
+            libvirt__network_name: "s#{switch_id}-p1",
+            libvirt__driver_name: "vhost",
+            libvirt__driver_queues: "8"
+
+        # Port 2 (left switch-to-switch)
+        machine.vm.network "private_network",
+            ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
+            mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (2)}", # Must be lowercase
+            nic_type: "virtio",
+            libvirt__network_name: "net#{NET_ID}",
+            libvirt__driver_name: "vhost",
+            libvirt__driver_queues: "8"
+
+        NET_ID = NET_ID + 1
+        # Port 3 (right switch-to-switch)
+        machine.vm.network "private_network",
+            ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
+            mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (3)}", # Must be lowercase
+            nic_type: "virtio",
+            libvirt__network_name: "net#{NET_ID}",
+            libvirt__driver_name: "vhost",
+            libvirt__driver_queues: "8"
+
+        if hostname == "frankfurt" || hostname == "amsterdam"
+          machine.vm.network "private_network",
+            ip: "10.11.40.#{switch_id + 10}",
+            mac: "00:00:00:00:#{"%02x" % (switch_id)}:#{"%02x" % (4)}", # Must be lowercase
+            nic_type: "virtio",
+            libvirt__network_name: "netFA",
+            libvirt__driver_name: "vhost",
+            libvirt__driver_queues: "8"
+        end
+  
+        machine.vm.network "forwarded_port",
+            guest: 22,
+            host: "#{2000+switch_id}"
+
+        machine.ssh.insert_key = false
+        machine.ssh.forward_x11 = true
+
+        # Configure synced folders
+        machine.vm.synced_folder "../build/", "/root/p4studio", type: "rsync", rsync__chown: true
+        machine.vm.synced_folder ".", "/vagrant", disabled: true
+        
+        machine.vm.provision "shell",
+          inline: "sudo rm /etc/machine-id; sudo systemd-machine-id-setup; sudo ifconfig eth1 up; sudo ifconfig eth2 up; sudo ifconfig eth3 up"
+        
+        # Install P4 Studio
+        machine.vm.provision "deps", type: "shell", path: "install-deps.sh"
+
+        # Install PolKA and configure the nodeID 
+        machine.vm.provision "polka", type: "shell", path: "run-polka.sh", args: "#{switch_id}"
       end
- 
-      machine.vm.network "forwarded_port",
-          guest: 22,
-          host: "#{2000+switch_id}"
-
-      machine.ssh.insert_key = false
-      machine.ssh.forward_x11 = true
-
-      # Configure synced folders
-      machine.vm.synced_folder "../build/", "/root/p4studio", type: "rsync", rsync__chown: true
-      machine.vm.synced_folder ".", "/vagrant", disabled: true
-      
-      machine.vm.provision "shell",
-        inline: "sudo rm /etc/machine-id; sudo systemd-machine-id-setup; sudo ifconfig eth1 up; sudo ifconfig eth2 up; sudo ifconfig eth3 up"
-      
-      # Install P4 Studio
-      machine.vm.provision "deps", type: "shell", path: "install-deps.sh"
-
-      # Install PolKA and configure the nodeID 
-      machine.vm.provision "polka", type: "shell", path: "run-polka.sh", args: "#{switch_id}"
     end
   end
 end
