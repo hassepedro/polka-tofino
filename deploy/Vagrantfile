@@ -59,6 +59,28 @@ Vagrant.configure("2") do |config|
             libvirt__network_name: "net#{INIT_NET_ID}",
             libvirt__driver_name: "vhost",
             libvirt__driver_queues: "8"
+        
+        machine.vm.network "forwarded_port",
+            guest: 22,
+            host: "#{2200+switch_id}"
+
+        machine.ssh.insert_key = false
+        machine.ssh.forward_x11 = true
+
+        # Configure synced folders
+        machine.vm.synced_folder "../build/", "/root/p4studio", type: "rsync", rsync__chown: true
+        machine.vm.synced_folder ".", "/vagrant", disabled: true
+        config.vm.provision "shell", inline: <<-SHELL
+          systemctl disable apt-daily.service
+          systemctl disable apt-daily.timer
+        SHELL
+
+        machine.vm.provision "shell", inline: <<-SHELL
+          while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
+            sleep 1
+          done
+        SHELL
+
       elsif hostname == "slough"
         machine.vm.network "private_network",
             ip: "10.11.1#{NET_ID}.#{switch_id + 10}",
@@ -67,6 +89,26 @@ Vagrant.configure("2") do |config|
             libvirt__network_name: "net#{NET_ID}",
             libvirt__driver_name: "vhost",
             libvirt__driver_queues: "8"
+        machine.vm.network "forwarded_port",
+            guest: 22,
+            host: "#{2200+switch_id}"
+
+        machine.ssh.insert_key = false
+        machine.ssh.forward_x11 = true
+
+        # Configure synced folders
+        machine.vm.synced_folder "../build/", "/root/p4studio", type: "rsync", rsync__chown: true
+        machine.vm.synced_folder ".", "/vagrant", disabled: true
+        config.vm.provision "shell", inline: <<-SHELL
+          systemctl disable apt-daily.service
+          systemctl disable apt-daily.timer
+        SHELL
+        
+        machine.vm.provision "shell", inline: <<-SHELL
+          while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
+            sleep 1
+          done
+        SHELL
       else
         # Private network for inter-vm communication
         # Port 1 (host)
