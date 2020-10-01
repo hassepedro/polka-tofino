@@ -32,6 +32,6 @@ To access each VM, you can use as username and password labnerds/labnerds.
 
 After provisioning the VMs, the Vagrantfile will create the following architecture:
 
-![Topology](../../fig/topology.png)
+![Topology](../../../fig/topology.png)
 
 `Paris` and `Slough` are the VMs used to either generate or receive the traffic based on the PolKA source-routing.
