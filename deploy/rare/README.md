@@ -1,37 +1,9 @@
-# How to deploy PolKA for Tofino in a emulated evironment using Barefoot P4 Studio.
+# PolKA-Tofino experiment in the RARE evironment.
 
-This deployment option is intended mainly for testing and development. To start the environment you have to simply run:
+The Figure below shows how the ports are mapped regarding the RARE topology and the use-case test. Once that the output port is the result of a polynomial modulo operation, the routeID is composed by the paths between ``Paris`` and ``Slough`` (output port on each hop).
 
-```sh
-$ vagrant --number-vms=<number_of_vms> up
-```
+![PolKA-Tofino RARE testbed](../../fig/polka-tofino-rare-settings.png)
 
-The reload is issued just to make sure all VMs are correctly setup. This should only be necessary after running `vagrant up` for the first time (VM creation and provisioning).
+As shown by the Figure, to pass through the longest path crossing ``Frankfurt -> Budapest -> Poznan -> Amsterdam``, the routeID previously calculated equal ``13895308368653518001``. For the shortest path going to ``Frankfurt -> Amsterdam`` only, the routeID previously calculated is ``2453734152``. To calculate the routeID we need a set of nodeID and output port formed by the path.
 
-Download and copy `bf-sde-*.tar` and `bf-tool-*.tar` files to ../build directory (NDA restrictions).
-
-To provise again in order to apply a new modification on the PolKA code, you need to run the following command:
-
-```sh
-$ vagrant provision <vm_name>
-```
-
-To see the list of VMs and their IP addresses, you can perform the following command:
-
-```sh
-root@nerds:~/polka-tofino/pkt# virsh net-dhcp-leases mgmt
- Expiry Time          MAC address        Protocol  IP address                Hostname        Client ID or DUID
--------------------------------------------------------------------------------------------------------------------
- 2020-09-17 14:42:13  52:54:00:6d:ae:76  ipv4      192.168.77.70/24          amsterdam       01:52:54:00:6d:ae:76
- 2020-09-17 15:00:16  52:54:00:6f:0e:7d  ipv4      192.168.77.81/24          frankfurt       01:52:54:00:6f:0e:7d
- 2020-09-17 14:50:33  52:54:00:8e:f7:c4  ipv4      192.168.77.248/24         poznan          01:52:54:00:8e:f7:c4
- 2020-09-17 14:42:38  52:54:00:fb:39:a8  ipv4      192.168.77.67/24          budapest        01:52:54:00:fb:39:a8
-```
-
-To access each VM, you can use as username and password labnerds/labnerds.
-
-After provisioning the VMs, the Vagrantfile will create the following architecture:
-
-![Topology](../fig/topology.png)
-
-`Paris` and `Slough` are the VMs used to either generate or receive the traffic based on the PolKA source-routing.
+For more details about how we calculate the routeID based on the set of nodeID and output port, we advise you to read the paper ``PolKA: Polynomial Key-based Architecture for Source Routing in Network Fabrics``(https://ieeexplore.ieee.org/abstract/document/9165501/).
