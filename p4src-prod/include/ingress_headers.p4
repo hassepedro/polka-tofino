@@ -43,7 +43,7 @@ header ipv4_t {
 
 struct ingress_headers_t {
     ethernet_t  ethernet;
-    // vlan_t      vlan;
+    vlan_t      vlan;
     srcRoute_t  srcRoute;
     ipv4_t      ipv4;
 }

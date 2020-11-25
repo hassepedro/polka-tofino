@@ -20,7 +20,7 @@ control Ingress(
 
     action send(PortId_t port) {
         // the ports begins as 128 stepping 8
-        ig_tm_md.ucast_egress_port = 120 + (8 * port);
+        ig_tm_md.ucast_egress_port = port;
 #ifdef BYPASS_EGRESS
         ig_tm_md.bypass_egress = 1;
 #endif      // BYPASS_EGRESS
@@ -49,10 +49,10 @@ control Ingress(
 
     apply {
 #ifdef POLKA_EDGE
-        if (hdr.ipv4.isValid() && hdr.ethernet.etherType != TYPE_SRCROUTING) {
+        if (hdr.ipv4.isValid() && hdr.vlan.etherType != TYPE_SRCROUTING) {
             process_tunnel_encap.apply(hdr, meta, ig_intr_md, ig_prsr_md, ig_dprsr_md, ig_tm_md);
-        } else if (hdr.ethernet.etherType == TYPE_SRCROUTING) {
-            hdr.ethernet.etherType = TYPE_IPV4;
+        } else if (hdr.vlan.etherType == TYPE_SRCROUTING) {
+            hdr.vlan.etherType = TYPE_IPV4;
             hdr.srcRoute.setInvalid();
             // this value is really hard-coded? (Yes)
             send(128);
@@ -60,7 +60,28 @@ control Ingress(
 #else
         if (meta.apply_sr == 1) {
             srcRoute_nhop();
-            send(meta.port);
+            if (meta.port == 1)
+                send(128);
+            else if(meta.port == 2)
+ 		        send(136);
+            else if(meta.port == 3)
+ 		        send(144);
+            else if(meta.port == 4)
+ 		        send(152);
+            else if(meta.port == 5)
+ 		        send(160);
+            else if(meta.port == 6)
+ 		        send(168);
+            else if(meta.port == 7)
+ 		        send(176);
+            else if(meta.port == 8)
+ 		        send(184);
+            else if(meta.port == 9)
+ 		        send(192);
+            else if(meta.port == 10)
+ 		        send(200);
+            else
+                send(128);
         } else {
             drop();
         }

@@ -26,6 +26,14 @@ parser IngressParser(packet_in        packet,
    state verify_ethernet {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
+            TYPE_VLAN: verify_vlan;
+            default: accept;
+        }
+    }
+
+    state verify_vlan {
+        packet.extract(hdr.vlan);
+        transition select(hdr.vlan.etherType) {
 #ifdef POLKA_EDGE
             TYPE_IPV4: parse_ipv4;
 #endif  // POLKA_EDGE
