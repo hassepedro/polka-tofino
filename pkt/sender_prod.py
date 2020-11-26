@@ -7,6 +7,7 @@ from scapy.all import Packet
 from scapy.all import Ether, IP, UDP, Dot1Q
 from scapy.fields import *
 import readline
+import time
 
 # s1->s2->s3
 # CROUTEID = 57851202663303480771156315372
@@ -82,7 +83,9 @@ def main():
 
         pkt = pkt / IP(dst=addr) / UDP(dport=4321, sport=1234)
         pkt.show2()
-        sendp(pkt, iface=iface, verbose=False)
+        for i in range(20):
+            sendp(pkt, iface=iface, verbose=False)
+            time.sleep(1)
 
 
 if __name__ == "__main__":
