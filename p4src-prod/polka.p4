@@ -6,6 +6,9 @@
 #include <tna.p4>
 #endif
 
+
+#define PORT_TRANSLATE(port) (120 + 8 * port)
+
 // Headers and parsers ingress
 /*************************************************************************
  **************  I N G R E S S   P R O C E S S I N G   *******************
