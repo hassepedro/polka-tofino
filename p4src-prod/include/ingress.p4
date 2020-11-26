@@ -20,7 +20,7 @@ control Ingress(
 
     action send(PortId_t port) {
         // the ports begins as 128 stepping 8
-        ig_tm_md.ucast_egress_port = port;
+        ig_tm_md.ucast_egress_port = (PortId_t) PORT_TRANSLATE(port);
 #ifdef BYPASS_EGRESS
         ig_tm_md.bypass_egress = 1;
 #endif      // BYPASS_EGRESS
@@ -55,33 +55,15 @@ control Ingress(
             hdr.vlan.etherType = TYPE_IPV4;
             hdr.srcRoute.setInvalid();
             // this value is really hard-coded? (Yes)
-            send(128);
+            send(1);
         }
 #else
         if (meta.apply_sr == 1) {
             srcRoute_nhop();
-            if (meta.port == 1)
-                send(128);
-            else if(meta.port == 2)
- 		        send(136);
-            else if(meta.port == 3)
- 		        send(144);
-            else if(meta.port == 4)
- 		        send(152);
-            else if(meta.port == 5)
- 		        send(160);
-            else if(meta.port == 6)
- 		        send(168);
-            else if(meta.port == 7)
- 		        send(176);
-            else if(meta.port == 8)
- 		        send(184);
-            else if(meta.port == 9)
- 		        send(192);
-            else if(meta.port == 10)
- 		        send(200);
+            if (meta.port < 11)
+                send(meta.port);
             else
-                send(128);
+                send(1);
         } else {
             drop();
         }
