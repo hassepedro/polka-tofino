@@ -73,7 +73,7 @@ def main():
         else:
             continue
 
-        pkt = Ether(src=get_if_hwaddr(iface), dst="ff:ff:ff:ff:ff:ff") / Dot1Q()
+        pkt = Ether(src=get_if_hwaddr(iface), dst="ff:ff:ff:ff:ff:ff") / Dot1Q(vlan=101)
         try:
             # pkt = pkt / SourceRoute(nrouteid=int(p))
             pkt = pkt / SourceRoute(nrouteid=option)
