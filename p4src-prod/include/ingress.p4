@@ -20,7 +20,8 @@ control Ingress(
 
     action send(PortId_t port) {
         // the ports begins as 128 stepping 8
-        ig_tm_md.ucast_egress_port = (PortId_t) PORT_TRANSLATE(port);
+        // ig_tm_md.ucast_egress_port = (PortId_t) PORT_TRANSLATE(port);
+        ig_tm_md.ucast_egress_port = port;
 #ifdef BYPASS_EGRESS
         ig_tm_md.bypass_egress = 1;
 #endif      // BYPASS_EGRESS
