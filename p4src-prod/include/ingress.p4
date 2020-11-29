@@ -60,10 +60,7 @@ control Ingress(
 #else
         if (meta.apply_sr == 1) {
             srcRoute_nhop();
-            if (meta.port < 11)
-                send(meta.port);
-            else
-                send(1);
+            send(meta.port);
         } else {
             drop();
         }
