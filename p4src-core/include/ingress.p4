@@ -36,8 +36,7 @@ control Ingress(
         bit<16> nport;
 
         routeid_t routeid = meta.routeId;
-        //routeid = 57851202663303480771156315372;
-
+        
         routeid_t ndata = routeid >> 16;
         bit<16> dif = (bit<16>) (routeid ^ (ndata << 16));
 
