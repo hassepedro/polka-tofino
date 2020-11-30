@@ -40,7 +40,7 @@ control Ingress(
         routeid_t ndata = routeid >> 16;
         bit<16> dif = (bit<16>) (routeid ^ (ndata << 16));
 
-        nresult = (bit<16>) hash3.get((bit<16>) ndata);
+        nresult = hash3.get((bit<128>) ndata);
         nport = nresult ^ dif;
 
         meta.port = (bit<9>) nport;
