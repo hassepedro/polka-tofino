@@ -6,7 +6,7 @@ const bit<16> TYPE_SRCROUTING = 0x1234;
 typedef bit<9>  egressSpec_t;
 typedef bit<48> macAddr_t;
 typedef bit<32> ip4Addr_t;
-typedef bit<160> routeid_t;
+typedef bit<POLKA_HEADER_SIZE> routeid_t;
 
 header ethernet_t {
     macAddr_t dstAddr;

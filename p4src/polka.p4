@@ -6,6 +6,7 @@
 #include <tna.p4>
 #endif
 
+#define POLKA_HEADER_SIZE 256
 // Headers and parsers ingress
 /*************************************************************************
  **************  I N G R E S S   P R O C E S S I N G   *******************
