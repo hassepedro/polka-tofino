@@ -22,8 +22,15 @@ control Ingress(
 #endif      // BYPASS_EGRESS
     }
 
+    // this time is calculated by subtracting 
+    // ig_intr_md.ingress_mac_tstamp from ig_intr_md_from_parser_aux.ingress_global_tstamp.
+    action timestamp_r(){
+        bit<48> time_a = ig_intr_md.ingress_mac_tstamp;
+        bit<48> time_b = ig_prsr_md.global_tstamp;
+        bit<32> time_c = eg_intr_md.enq_tstamp;
+    }
+
     apply {
-#ifdef POLKA_EDGE
         if (hdr.ipv4.isValid() && hdr.vlan.etherType != TYPE_SRCROUTING) {
             process_tunnel_encap.apply(hdr, meta, ig_intr_md, ig_prsr_md, ig_dprsr_md, ig_tm_md);
         } else if (hdr.vlan.etherType == TYPE_SRCROUTING) {

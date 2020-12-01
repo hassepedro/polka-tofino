@@ -36,6 +36,10 @@ control Egress(
     inout egress_intrinsic_metadata_for_deparser_t     eg_dprsr_md,
     inout egress_intrinsic_metadata_for_output_port_t  eg_oport_md)
 {
+    action timestamp_r(){
+        bit<32> time_c = eg_intr_md.enq_tstamp;
+    }
+
     apply {
     }
 }
