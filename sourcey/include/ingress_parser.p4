@@ -39,7 +39,7 @@ parser IngressParser(packet_in        packet,
     }
 
     state parse_srcRouting {
-        packet.extract(hdr.srcRoute.next);
+        packet.extract(hdr.srcRoutes.next);
         transition accept;
     }
 }
