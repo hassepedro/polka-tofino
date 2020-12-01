@@ -15,10 +15,6 @@ parser IngressParser(packet_in        packet,
     }
 
     state init_meta {
-        meta.routeId = 0;
-        meta.etherType = 0;
-        meta.apply_sr = 0;
-        meta.apply_decap = 0;
         meta.port = 0;
         transition verify_ethernet;
     }
